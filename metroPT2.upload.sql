@@ -14,7 +14,9 @@ create or replace stage FROM_LP36131
 -- use schema PUBLIC;
 -- put file:/c:/Users/balzer/Documents/Projekte/Sulzer/DMAS/10.DMAS.Materialien/MetroPT2_predictive_maintenance/7766691.zip @FROM_LP36131;
 
-list @METROPT2.PUBLIC.FROM_LP36131;
+list @DMAS.METROPT2.FROM_LP36131;
+
+-- Laden der Dateien !
 
 select metadata$filename, count(*) from @FROM_LP36131 group by 1;
 select $1 from @FROM_LP36131/dataset_train.csv.gz limit 100;
@@ -60,8 +62,8 @@ select
         --$1:gpsSpeed				as GPSSPEED,
         --$1:gpsQuality				as GPSQUALITY
 
-   from @METROPT2.PUBLIC.FROM_LP36131/dataset_train.csv.gz
-        (file_format => METROPT2.PUBLIC.PT2_FORMAT_ANALOG)
+   from @DMAS.METROPT2.FROM_LP36131/dataset_train.csv.gz
+        (file_format => DMAS.METROPT2.PT2_FORMAT_ANALOG)
    limit 10
 ;
 
@@ -86,7 +88,7 @@ create or replace file format PT2_FORMAT_ANALOG
     timestamp_format = 'YYYY-MM-DD HH24:MI:SS'
 ;
 
-create or replace table METROPT2.PUBLIC.DATASET_TRAIN (
+create or replace table DMAS.METROPT2.DATASET_TRAIN (
     TIMESTAMP					TIMESTAMP_NTZ,
     TP2					        NUMBER(18, 16),
     TP3					        NUMBER(18, 16),
@@ -109,17 +111,17 @@ create or replace table METROPT2.PUBLIC.DATASET_TRAIN (
     GPSSPEED					NUMBER(4, 1),
     GPSQUALITY					NUMBER(2, 1)
 );
-copy into METROPT2.PUBLIC.DATASET_TRAIN
-     from @METROPT2.PUBLIC.FROM_LP36131
+copy into DMAS.METROPT2.DATASET_TRAIN
+     from @DMAS.METROPT2.FROM_LP36131
      files = ('dataset_train.csv.gz')
-     file_format = (format_name = 'METROPT2.PUBLIC.PT2_FORMAT_ANALOG')
+     file_format = (format_name = 'DMAS.METROPT2.PT2_FORMAT_ANALOG')
      match_by_column_name = case_insensitive
 ;
 
 -- =====================================================================================================
 -- Digital (metroPT2)
 
-create or replace table METROPT2.PUBLIC.DATASET_METROPT2(
+create or replace table DMAS.METROPT2.DATASET_METROPT2(
     TIMESTAMP					TIMESTAMP_NTZ,
     TP2					        NUMBER(18, 16),
     TP3					        NUMBER(18, 16),
@@ -165,10 +167,10 @@ alter warehouse COMPUTE_WH suspend;
 use warehouse LOAD_PT2_M;
 alter warehouse LOAD_PT2_M resume;
 
-copy into METROPT2.PUBLIC.DATASET_METROPT2
-     from @METROPT2.PUBLIC.FROM_LP36131
+copy into DMAS.METROPT2.DATASET_METROPT2
+     from @DMAS.METROPT2.FROM_LP36131
      files = ('metroPT2.csv.gz')
-     file_format = (format_name = 'METROPT2.PUBLIC.PT2_FORMAT_DIGITAL')
+     file_format = (format_name = 'DMAS.METROPT2.PT2_FORMAT_DIGITAL')
      match_by_column_name = case_insensitive
 ;
 
